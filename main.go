@@ -11,7 +11,11 @@ import (
 	"golang.org/x/term"
 )
 
-var authorizedKeysMap map[string]bool
+var (
+	authorizedKeysMap    map[string]bool
+	activeClientChannels map[*term.Terminal]bool
+	clientChannelMutex   sync.Mutex
+)
 
 var sshServerConfig *ssh.ServerConfig = &ssh.ServerConfig{
 	// Remove to disable password auth.
@@ -42,13 +46,13 @@ func main() {
 
 	// An SSH server is represented by a ServerConfig, which holds
 	// certificate details and handles authentication of ServerConns.
+	activeClientChannels = make(map[*term.Terminal]bool)
 	sshServerConfig.AddHostKey(getSvrPrivateKey())
 
 	log.Println("SSH server is listening for incoming connections.")
 
 	listenForNewConnections()
 
-	
 }
 
 func getSvrPrivateKey() ssh.Signer {
@@ -169,6 +173,10 @@ func handleSingleConn(conn *ssh.ServerConn, chans <-chan ssh.NewChannel, reqs <-
 
 		term := term.NewTerminal(channel, "> ")
 
+		clientChannelMutex.Lock()
+		activeClientChannels[term] = true
+		clientChannelMutex.Unlock()
+
 		wg.Add(1)
 		go func() {
 			defer func() {
@@ -180,7 +188,11 @@ func handleSingleConn(conn *ssh.ServerConn, chans <-chan ssh.NewChannel, reqs <-
 				if err != nil {
 					break
 				}
-				fmt.Println("Out:" + line)
+				clientChannelMutex.Lock()
+				for t := range activeClientChannels {
+					t.Write([]byte(fmt.Sprintf("someone said: %q\n", line)))
+				}
+				clientChannelMutex.Unlock()
 			}
 		}()
 	}
