@@ -1,2 +1,4 @@
 authorized_keys
 .env
+ssh_server_key
+ssh_server_key.pub
