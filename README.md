@@ -10,7 +10,17 @@ Group SSH Chat creates a simple chat server that users can connect to using stan
 
 - **SSH-based Authentication**: Securely authenticate users using SSH public key authentication
 - **Real-time Group Chat**: All connected users can communicate with each other
-- **Terminal Interface**: Simple and lightweight terminal-based UI
+- **Enhanced Terminal UI**: Rich terminal interface featuring:
+  - Color-coded usernames and timestamps
+  - ANSI color support for better visual distinction
+  - Real-time user list updates
+  - Clear visual separators between different sections
+- **Interactive Commands**: Support for slash commands:
+  - `/help` - Shows a list of available commands
+  - `/users` - Shows a list of online users
+  - `/whisper <username> <message>` - Sends a private message to another user
+  - `/clear` - Clears the chat screen
+- **Private Messaging**: Send private messages to specific users
 - **Multiple Concurrent Sessions**: Support for multiple users connecting simultaneously
 - **Session Management**: Tracks active client sessions with unique IDs
 
@@ -19,6 +29,7 @@ Group SSH Chat creates a simple chat server that users can connect to using stan
 - Go 1.20 or higher
 - SSH keys for server and clients
 - Linux/macOS/Windows with SSH client support
+- Terminal with Unicode and color support
 
 ## Installation
 
@@ -43,7 +54,11 @@ Group SSH Chat creates a simple chat server that users can connect to using stan
 
 4. Build the application:
    ```bash
-   go build -o group-ssh-chat
+   # On Linux/macOS
+   go build -o group-ssh-chat cmd/main.go
+
+   # On Windows
+   go build -o group-ssh-chat.exe cmd/main.go
    ```
 
 ## Setup
@@ -94,15 +109,17 @@ Users can connect using any standard SSH client:
 ssh -p 2222 username@server_address -i /path/to/user_private_key
 ```
 
-Once connected, anything a user types will be broadcast to all other connected users.
+Once connected, you'll see a terminal interface with chat messages and a user list. Type your message and press Enter to send it to all connected users. You can also use slash commands like `/help`, `/users`, `/whisper`, and `/clear` for additional functionality.
 
 ## Architecture
 
-The project consists of three main components:
+The project consists of five main components:
 
 1. **auth**: Handles SSH authentication mechanisms, including public key verification
 2. **sshserver**: Manages the SSH server, including client connections and message broadcasting
-3. **main**: Initializes the application and starts the server
+3. **ui**: Provides the terminal user interface with ANSI color support
+4. **commands**: Implements the slash command system for interactive features
+5. **main**: Initializes the application and starts the server
 
 ## Security Considerations
 

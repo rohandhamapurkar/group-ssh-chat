@@ -27,13 +27,17 @@ func New() *SSHAuth {
 
 // Handles the public authorized key login for a user
 func (sam SSHAuth) HandlePublicKeyLogin(c ssh.ConnMetadata, pubKey ssh.PublicKey) (*ssh.Permissions, error) {
-	if sam.authorizedKeysMap[c.User()] == string(pubKey.Marshal()) {
-		return &ssh.Permissions{
-			// Record the public key used for authentication.
-			Extensions: map[string]string{
-				"pubkey-fp": ssh.FingerprintSHA256(pubKey),
-			},
-		}, nil
+	// Check if the key is in our authorized keys map for any user
+	pubKeyStr := string(pubKey.Marshal())
+	for _, authorizedKey := range sam.authorizedKeysMap {
+		if authorizedKey == pubKeyStr {
+			return &ssh.Permissions{
+				// Record the public key used for authentication.
+				Extensions: map[string]string{
+					"pubkey-fp": ssh.FingerprintSHA256(pubKey),
+				},
+			}, nil
+		}
 	}
 	return nil, fmt.Errorf("unknown public key for %q", c.User())
 }
